@@ -1,0 +1,44 @@
+{
+    "info": {
+        "title" : "User API",
+        "description": "User API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000"
+        }
+    ],
+    "paths" : {
+        "/api/v1/auth" : {
+            "/login" : {
+                "post": {
+                    "description": "Login User",
+                    "requestBody" : {
+                        "username" : { "type":"string" },
+                        "password" : { "type":"string" }
+                    },
+                    "responses" : {
+                        "200" : {
+                            "description":"Login success",
+                            "body" : {
+                                "status" : { "type" : "number" },
+                                "message" : { "type" : "string" },
+                                "token" : { "type" : "string" }
+                            }
+                        }
+                    }
+                }
+            },
+            "/register" : {
+
+            },
+            "/logout" : {
+
+            },
+            "/forgot_password" : {
+
+            }
+        }
+    }
+}
