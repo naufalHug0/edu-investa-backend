@@ -12,12 +12,12 @@ class Question extends Model
     public $timestamps = false;
 
     public function quizzes () {
-        return $this->belongTo(Quiz::class, 'quiz_id');
+        return $this->belongsTo(Quiz::class, 'quiz_id');
     }
 
     public function question_options()
     {
-        return $this->hasMany(Question_option::class);
+        return $this->hasMany(Question_option::class, 'question_id');
     }
 
     public function question_levels ()

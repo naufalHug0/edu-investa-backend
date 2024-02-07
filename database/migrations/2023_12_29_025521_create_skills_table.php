@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('skills', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('description');
+            $table->string('description',85);
             $table->string('logo_path');
             $table->integer('price');
+            $table->integer('cooldown_time');
+            $table->boolean('disposable');
+            $table->integer('active_time');
         });
     }
 

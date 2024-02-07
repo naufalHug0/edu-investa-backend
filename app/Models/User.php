@@ -36,5 +36,10 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed'
     ];
+
+    public function user_xps()
+    {
+        return $this->hasOne(User_xp::class); 
+    }
 }
 

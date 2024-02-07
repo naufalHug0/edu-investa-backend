@@ -10,4 +10,8 @@ class Question_answer extends Model
     use HasFactory;
     protected $guarded = ['id'];
     public $timestamps = false;
+
+    public function question_options () {
+        return $this->hasOne(Question_option::class);
+    }
 }

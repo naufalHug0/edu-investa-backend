@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Api;
+use App\Models\Question_level;
 use App\Http\Requests\StoreQuestion_levelRequest;
 use App\Http\Requests\UpdateQuestion_levelRequest;
-use App\Models\Question_level;
 
 class QuestionLevelController extends Controller
 {
@@ -13,7 +14,12 @@ class QuestionLevelController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            return Api::response(200, 'Fetch success', Question_level::all());
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Api::serverError($e);
+        }
     }
 
     /**

@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreShortsRequest;
-use App\Http\Requests\UpdateShortsRequest;
+use App\Helpers\Api;
 use App\Models\Shorts;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\StoreShortsRequest;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UpdateShortsRequest;
 
 class ShortsController extends Controller
 {
@@ -13,15 +18,41 @@ class ShortsController extends Controller
      */
     public function index()
     {
-        //
+        return Api::response(200, 'Fetch success', Shorts::all());
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        try {
+            $validator = Validator::make($request->all(), [
+                'title' => 'required|string|max:255',
+                'video' => 'required|file|mimetypes:video/mp4',
+                'image' => 'required|file|mimetypes:image/*',
+            ]);
+    
+            if ($validator->fails()) {
+                return Api::response(400, "Invalid field", ["errors" => $validator->errors()]);
+            }
+    
+            // video upload
+            $videoPath = $request->file('video')->store('shorts');
+    
+            // image upload
+            $thumbnail_path = $request->file('image')->store('thumbnails');
+    
+            $shorts = Shorts::create([
+                'title' => $request->title,
+                'thumbnail_path' => $thumbnail_path,
+                'video_path' => $videoPath,
+            ]);
+    
+            return Api::response(201, 'Created Successfully');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Api::serverError($e);
+        }
     }
 
     /**
@@ -35,9 +66,12 @@ class ShortsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Shorts $shorts)
+    public function show(int $id)
     {
-        //
+        $shorts = Shorts::orderByRaw("id = $id DESC")->orderBy('id', 'asc')->get();
+        $shorts[] = Shorts::find(1);
+
+        return Api::response(200, 'Fetch Success', $shorts); 
     }
 
     /**

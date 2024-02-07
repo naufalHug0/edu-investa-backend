@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('shorts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('description');
             $table->string('thumbnail_path');
             $table->string('video_path');
             $table->timestamps();

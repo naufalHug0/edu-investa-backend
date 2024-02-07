@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Api;
+use App\Models\Skills;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User_skills_inventory;
 use App\Http\Requests\StoreUser_skills_inventoryRequest;
 use App\Http\Requests\UpdateUser_skills_inventoryRequest;
-use App\Models\User_skills_inventory;
 
 class UserSkillsInventoryController extends Controller
 {
@@ -13,7 +17,16 @@ class UserSkillsInventoryController extends Controller
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+        
+        $user_skills = Skills::select('skills.*', 'user_skills_inventories.id as inventory_id', 'user_skills_inventories.quantity')
+        ->join('user_skills_inventories', function ($join) use ($user) {
+            $join->on('skills.id', '=', 'user_skills_inventories.skills_id')
+                ->where('user_skills_inventories.user_id', '=', $user->id);
+        })
+        ->get();
+
+        return Api::response(200, 'Fetch success', $user_skills);
     }
 
     /**

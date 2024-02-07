@@ -10,4 +10,8 @@ class Question_level extends Model
     use HasFactory;
     protected $guarded = ['id'];
     public $timestamps = false;
+
+    public function questions () {
+        return $this->hasMany(Question::class);
+    }
 }

@@ -77,9 +77,34 @@ class QuestionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Question $question)
+    public function show(int $id, int $offset)
     {
-        //
+        $questions = Question::with([
+            'question_options',
+            'question_levels' => function ($query) {
+                $query->select('id', 'reward_xp');
+            },
+        ])
+        ->where('quiz_id', $id)
+        ->offset($offset)
+        ->limit(5)
+        ->get();
+
+        $option_ids = array_merge(...array_map(function ($question) {
+            return array_map(function ($option) {
+                return $option['id'];
+            },$question['question_options']);
+        }, $questions->toArray()));
+
+        $answer_ids = array_column(Question_answer::select('question_option_id')->whereIn('question_option_id',$option_ids)->get()->toArray(),'question_option_id');
+
+        $questions = $questions->each(function ($question) use ($answer_ids) {
+            $question->question_options->each(function ($option) use ($answer_ids) {
+                $option->isCorrect = array_search($option->id, $answer_ids) !== false;
+            });
+        });
+        
+        return Api::response(200, 'Fetch success', $questions);
     }
 
     /**

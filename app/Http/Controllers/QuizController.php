@@ -6,6 +6,9 @@ use App\Helpers\Api;
 use App\Models\Quiz;
 use Illuminate\Http\Request;
 use App\Http\Requests\UpdateQuizRequest;
+use App\Models\Question;
+use App\Models\Question_answer;
+use App\Models\Question_option;
 use Illuminate\Support\Facades\Validator;
 
 class QuizController extends Controller
@@ -16,7 +19,7 @@ class QuizController extends Controller
     public function index()
     {
         try {
-            return Api::response(200, 'Fetch success', Quiz::all());
+            return Api::response(200, 'Fetch success', Quiz::withTotalXpRewardsAndQuestionCount()->get());
 
         } catch (\Illuminate\Database\QueryException $e) {
             return Api::serverError($e);
@@ -32,17 +35,44 @@ class QuizController extends Controller
             'title' => 'required',
             'description' => 'required',
             'duration' => 'required|integer',
+            'questions' => 'required|array',
+            'questions.*.text' => 'required|string|max:255',
+            'questions.*.level_id' => 'required|integer',
+            'questions.*.options' => 'required|array',
+            'questions.*.options.*.text' => 'required|string|max:255',
+            'questions.*.options.*.isCorrect' => 'required|boolean',
         ]);
 
         if ($validator->fails()) {
             return Api::response(400, "Invalid field", ["errors" => $validator->errors()]);
         }
 
-        Quiz::create([
+        $quiz = Quiz::create([
             'title' => $request->title,
             'description' => $request['description'],
             'duration' => $request['duration']
         ]);
+
+        foreach ($request->questions as $q) {
+            $question = Question::create([
+                'quiz_id' => $quiz->id,
+                'text' => $q['text'],
+                'level_id' => $q['level_id']
+            ]);
+    
+            array_map(function ($option) use ($question) {
+                $question_option = Question_option::create([
+                    'question_id' => $question->id,
+                    'text' => $option['text']
+                ]);
+    
+                if ($option['isCorrect']) {
+                    Question_answer::create([
+                        "question_option_id"=>$question_option->id
+                    ]);
+                }
+            }, $q['options']);
+        }
 
         return Api::response(201, "Created successfully");
     }
@@ -52,7 +82,7 @@ class QuizController extends Controller
      */
     public function show(int $id)
     {
-        $quiz = Quiz::with(['questions','questions.question_levels','questions.question_options','questions.question_options.question_answers'])->findOrFail($id);
+        $quiz = Quiz::withTotalXpRewardsAndQuestionCount()->findOrFail($id);
 
         return Api::response(200, "Fetch success", $quiz);
     }

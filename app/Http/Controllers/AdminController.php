@@ -15,6 +15,30 @@ use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
+    public function login(Request $request) {
+        try {
+            if (!Auth::attempt(["username"=>$request->username, "password"=>$request->password])) {
+                return Api::response(401, "Invalid username or password");
+            }
+    
+            $auth = Auth::user();
+            $is_admin = Admin::where('user_id', $auth->id)->first();
+
+            if ($is_admin) {
+                $token = $auth->createToken('auth_token')->plainTextToken;
+    
+                return Api::response(200, "Login success", [
+                    "access_token" => $token,
+                    "token_type" => "Bearer"
+                ]);
+            }
+
+            return Api::response(403, "Forbidden: Access is denied (Admin-only API endpoint)");
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Api::serverError($e);
+        }
+    }
     public function register(Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -25,7 +49,7 @@ class AdminController extends Controller
             ]);
     
             if ($validator->fails()) {
-                return Api::response(422, "Invalid field", ["errors" => $validator->errors()]);
+                return Api::response(400, "Invalid field", ["errors" => $validator->errors()]);
             }
 
             $user = User::create([
