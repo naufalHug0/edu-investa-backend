@@ -39,6 +39,7 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware(['auth:sanctum', 'auth.user'])->group(function () {
             Route::get('me', [AuthController::class, 'me']);
+            Route::patch('me', [AuthController::class, 'edit_profile']);
             Route::delete('logout', [AuthController::class, 'logout']);
             Route::patch('reset_password', [AuthController::class, 'reset_password']);
         });

@@ -62,7 +62,9 @@ class CourseController extends Controller
                     'video_path' => $videoPath,
                     'duration' => intval($video['duration']),
                     'is_premium' => $video['is_premium'] == 'true',
-                    'course_id' => $course->id
+                    'course_id' => $course->id,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now()
                 ];
             }
 

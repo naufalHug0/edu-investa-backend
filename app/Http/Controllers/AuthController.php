@@ -9,6 +9,7 @@ use App\Models\User_xp;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\User_package;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -66,6 +67,11 @@ class AuthController extends Controller
                 'total_xp'=>0
             ]);
 
+            // User_package::create([
+            //     'user_id'=>$user->id,
+            //     'package'=>'regular'
+            // ]);
+
             return Api::response(201, "Created successfully");
 
         } catch (\Illuminate\Database\QueryException $e) {
@@ -117,7 +123,8 @@ class AuthController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 "old_password"=>"required",
-                "new_password"=>"required"
+                "new_password"=>"required|required_with:confirm_new_password|same:confirm_new_password",
+                'confirm_new_password'=>"required"
             ]);
     
             if ($validator->fails()) {
@@ -127,7 +134,7 @@ class AuthController extends Controller
             $user = Auth::user();
             
             if (!Hash::check($request->old_password, $user->password)) {
-                return Api::response(400, 'old password did not match');
+                return Api::response(401, 'Old password did not match');
             }
             
             User::find($user->id)->update(['password' => Hash::make($request->new_password)]);
@@ -138,4 +145,29 @@ class AuthController extends Controller
         }
     }
 
+    public function edit_profile (Request $request) {
+        try {
+            $validator = Validator::make($request->all(), [
+                "name"=>"required|string",
+                "email"=>"required|string",
+                'username'=>"required|string|unique:users"
+            ]);
+    
+            if ($validator->fails()) {
+                return Api::response(400, "Invalid field", ["errors" => $validator->errors()]);
+            }
+    
+            $user = Auth::user();
+            
+            User::find($user->id)->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'username' => $request->username
+            ]);
+            
+            return Api::response(201, 'Change success');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Api::serverError($e);
+        }
+    }
 }
